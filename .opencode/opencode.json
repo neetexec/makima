@@ -1,0 +1,28 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "makima",
+  "skills": {
+    "paths": [".opencode/skill"]
+  },
+  "references": {
+    "kb-payloads": {
+      "path": "/workspace/knowledgebase/PayloadsAllTheThings",
+      "description": "Payload & exploit reference for web/API vulnerabilities (SQLi, XSS, SSTI, SSRF, XXE, LFI/RFI, file upload, deserialization, JWT, NoSQL, GraphQL, command injection, etc.). Use for web exploitation payloads and bypasses."
+    },
+    "kb-internal": {
+      "path": "/workspace/knowledgebase/InternalAllTheThings",
+      "description": "Internal/AD pentest methodology + post-exploitation: Active Directory enumeration/exploitation, Linux & Windows privilege escalation, MSSQL, shell/persistence, hash cracking, pivoting, C2, evasion, containers."
+    },
+    "kb-recipes": {
+      "path": "/workspace/knowledgebase/HackerRecipes",
+      "description": "The Hacker Recipes: AD movement & persistence, Kerberos/NTLM attacks, web inputs & recon, infra (pivoting, protocols), Linux/Windows privesc."
+    }
+  },
+  "permission": {
+    "edit": "allow",
+    "bash": "allow",
+    "webfetch": "allow",
+    "websearch": "allow",
+    "external_directory": "allow"
+  }
+}

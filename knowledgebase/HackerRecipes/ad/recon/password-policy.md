@@ -1,0 +1,68 @@
+---
+authors: ShutdownRepo, jamarir
+category: ad
+---
+
+# Password policy
+
+When attacking Active Directory domains, directly targeting accounts is usually a great start. It could provide initial access and help the attackers operate lateral movement. The easiest way to compromise accounts is to operate some password [guessing](../movement/credentials/bruteforcing/guessing) or [spraying](../movement/credentials/bruteforcing/spraying). This kind of attack usually yields good results depending on the user's awareness. There are however technical measures that usually are in place, forcing the attackers to balance the number and speed of password attempts.
+
+In order to fine-tune this, the password policy can be obtained. This policy can sometimes be enumerated with a null-session (i.e. an [MS-RPC null session](ms-rpc#null-sessions) or an [LDAP anonymous bind](ldap)).
+
+::: tabs
+
+=== UNIX-like
+
+On UNIX-like systems, there are many alternatives that allow obtaining the password policy like [polenum](https://github.com/Wh1t3Fox/polenum) (Python), [NetExec](https://github.com/Pennyw0rth/NetExec) (Python), [ldapsearch-ad](https://github.com/yaap7/ldapsearch-ad) (Python) and [enum4linux](enum4linux).
+
+```bash
+# polenum (obtained through MS-RPC)
+polenum -d "$DOMAIN" -u "$USER" -p "$PASSWORD"
+
+# netexec (obtained through MS-RPC)
+nxc smb "$DC_IP" -d "$DOMAIN" -u "$USER" -p "$PASSWORD" --pass-pol
+
+# ldapsearch-ad (obtained through LDAP)
+ldapsearch-ad -l "$DC_IP" -d "$DOMAIN" -u "$USER" -p "$PASSWORD" -t pass-pol
+
+# enum4linux-ng (obtained through MS-RPC)
+enum4linux-ng -P -w -u "$USER" -p "$PASSWORD" "$DC_IP"
+```
+
+
+=== Windows
+
+From a domain-joined machine, the `net` cmdlet can be used to obtain the password policy.
+
+```bash
+net accounts
+net accounts /domain
+```
+
+From non-domain-joined machines, it can be done with [PowerView](https://github.com/PowerShellMafia/PowerSploit/blob/master/Recon/PowerView.ps1) (Powershell).
+
+```bash
+Get-DomainPolicy
+```
+
+Also, the [Invoke-PassTheCert](https://github.com/jamarir/Invoke-PassTheCert) fork can be used, authenticating through Schannel via [PassTheCert](https://www.thehacker.recipes/ad/movement/schannel/passthecert) (PowerShell version).
+
+> Note: the [README](https://github.com/jamarir/Invoke-PassTheCert/blob/main/README.md) contains the methodology to request a certificate using [certreq](https://github.com/GhostPack/Certify/issues/13#issuecomment-3622538862) from Windows (with a password, or an NTHash).
+```powershell
+# Import the PowerShell script and show its manual
+Import-Module .\Invoke-PassTheCert.ps1
+.\Invoke-PassTheCert.ps1 -?
+# Authenticate to LDAP/S
+$LdapConnection = Invoke-PassTheCert-GetLDAPConnectionInstance -Server 'LDAP_IP' -Port 636 -Certificate cert.pfx
+# List all the available actions
+Invoke-PassTheCert -a -NoBanner
+
+# Returns any Password-Policy-related attribute of any object of class `domain` in the 'ADLAB.LOCAL' Domain
+Invoke-PassTheCert -Action 'LDAPEnum' -LdapConnection $LdapConnection -Enum 'PassPol' -SearchBase 'DC=ADLAB,DC=LOCAL'
+```
+
+:::
+
+
+> [!TIP]
+> Accounts that lockout can be attacked with [sprayhound](https://github.com/Hackndo/sprayhound) ([credential spraying](../movement/credentials/bruteforcing/spraying)) while those that don't can be directly bruteforced with [kerbrute](https://github.com/ropnop/kerbrute) ([Kerberos pre-auth bruteforcing](../movement/kerberos/pre-auth-bruteforce))
