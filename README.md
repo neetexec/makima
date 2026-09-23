@@ -19,7 +19,7 @@
   <a href="https://www.thehacker.recipes/"><img src="https://img.shields.io/badge/Hacker_Recipes-methodology-1f6feb?style=for-the-badge&logo=github&logoColor=white" alt="The Hacker Recipes"></a>
   <a href="https://github.com/swisskyrepo/PayloadsAllTheThings"><img src="https://img.shields.io/badge/PayloadsAllTheThings-web_payloads-d73a49?style=for-the-badge&logo=github&logoColor=white" alt="PayloadsAllTheThings"></a>
   <a href="https://github.com/swisskyrepo/InternalAllTheThings"><img src="https://img.shields.io/badge/InternalAllTheThings-AD_%26_internal-6f42c1?style=for-the-badge&logo=github&logoColor=white" alt="InternalAllTheThings"></a>
-  <a href="https://github.com/jakobfriedl/precompiled-binaries"><img src="https://img.shields.io/badge/precompiled--binaries-additional-2ea043?style=for-the-badge&logo=github&logoColor=white" alt="precompiled-binaries"></a>
+  <a href="https://github.com/jakobfriedl/precompiled-binaries"><img src="https://img.shields.io/badge/precompiled--binaries-additional--toolset-2ea043?style=for-the-badge&logo=github&logoColor=white" alt="precompiled-binaries"></a>
 </p>
 
 ---
