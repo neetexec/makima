@@ -290,7 +290,7 @@ Makima is the **orchestrator**. She does not run thes scans or exploits herself,
 
 Makima is still an early-stage prototype. Some areas that could be improved:
 
-* **Tool & Workflow Efficiency** - Improve tool selection, reduce redundant work, and make agent workflows more adaptive. For example, use faster tools such as `rustscan` for initial port discovery when appropriate.
+* **Tool & Workflow Efficiency** - Improve tool selection, reduce redundant work, and make agent workflows more adaptive. For example, use faster tools such as `rustscan` for initial port discovery instead of nmap (which is kinda slow).
 * **Agent Orchestration & State** - Improve real-time agent monitoring and communication with a proper message/event bus, instead of relying on `notes.md` as the primary shared state.
 * **KB & Agent Quality** - The current agent is AI-generated. The Agent, workflows, and knowledge-base integration could be refined further to improve accuracy, efficiency, and reduce overly prescriptive behavior.
 * **General Pentesting Support** - Move beyond the current HTB-oriented use case and support broader penetration-testing engagements and different assessment types.
