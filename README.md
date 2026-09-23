@@ -158,7 +158,7 @@ More knowledge sources can be added as the system evolves.
 
 Makima has been built and tested against multiple **HackTheBox Easy-Medium machines**.
 
-In several cases, Makima has been able to execute the attack chain autonomously from initial reconnaissance all the way to obtaining the root flag in under 2 hours.
+In several cases, Makima has been able to execute the attack chain autonomously from initial reconnaissance all the way to obtaining the root flag in around 1 hour.
 
 <p align="center">
   <img src="assets/makima_root.png" alt="makima_agents" width="80%">
