@@ -286,9 +286,21 @@ Makima is the **orchestrator**. She does not run thes scans or exploits herself,
 
 ---
 
+## Improvement Room
+
+Makima is still an early-stage prototype. Some areas that could be improved:
+
+* **Tool & Workflow Efficiency** - Improve tool selection, reduce redundant work, and make agent workflows more adaptive. For example, use faster tools such as `rustscan` for initial port discovery when appropriate.
+* **Agent Orchestration & State** - Improve real-time agent monitoring and communication with a proper message/event bus, instead of relying on `notes.md` as the primary shared state.
+* **KB & Agent Quality** - The current agent is AI-generated. The Agent, workflows, and knowledge-base integration could be refined further to improve accuracy, efficiency, and reduce overly prescriptive behavior.
+* **General Pentesting Support** - Move beyond the current HTB-oriented use case and support broader penetration-testing engagements and different assessment types.
+* **Partner Mode** - Add a collaborative mode where Makima acts as a pentesting assistant, following user instructions while providing findings, insights, and suggested next steps instead of driving the entire engagement autonomously.
+
+---
+
 ## Credits
 
-Makima builds on community offensive-security knowledge bases and tool sets:
+Makima built from community offensive-security knowledge bases and tool sets:
 
 - [The Hacker Recipes](https://www.thehacker.recipes/) — general offensive-security techniques and methodology
 - [PayloadsAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings) — web/API payloads and exploitation techniques
@@ -307,4 +319,5 @@ The authors are not responsible for misuse or damage caused by this project.
 
 <p align="center">
   <i>返事ははいかワンだけ。いいえなんて言う犬はいらない。</i>
+  <i>-makima</i>
 </p>
