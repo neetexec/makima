@@ -26,7 +26,7 @@
 
 ## Overview
 
-Makima is a **multi-agent autonomous pentest framework** built on top of [Exegol](https://github.com/ThePorgs/Exegol) container.
+Makima is a **Multi-Agent Autonomous Pentesting Orchestration System** built on top of [Exegol](https://github.com/ThePorgs/Exegol) container.
 
 It uses **OpenCode as the AI harness** and **Herdr as the workspace/session environment** where Makima and other agents operate.
 
