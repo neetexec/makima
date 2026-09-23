@@ -2,7 +2,7 @@
   <img src="assets/makima_goddess.png" alt="Makima — Multi-Agent Pentest Framework" width="100%">
 </p>
 
-<h1 align="center">Makima - Multi Agent Autonomous Pentest Orchestration System</h1>
+<h1 align="center">Makima: Multi-Agent Autonomous Pentesting Orchestration System</h1>
 
 <p align="center">
   Knowledge(cheatsheet)-driven multi-agent orchestration system for autonomous penetration testing.
